@@ -4,6 +4,8 @@ from tkinter import filedialog
 import os
 import matplotlib
 import matplotlib.pyplot
+from tk_zoom import ZoomPan
+
 
 curdir = os.path.abspath(os.path.dirname(__file__)) # Текущий каталог, где лежит программа
 
@@ -43,6 +45,10 @@ class MainTk(tk.Tk):
         self.canvas = matplotlib.backends.backend_tkagg.FigureCanvasTkAgg(fig, self)
         #self.canvas.draw() 
         self.canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)    
+        
+        # --- Масштабирование графика ---
+        zp = ZoomPan()
+        zp.apply(ax, base_scale=1.3)
         
         # --- Тулбар ---
         self.toolbar = matplotlib.backends.backend_tkagg.NavigationToolbar2Tk(self.canvas, self)
