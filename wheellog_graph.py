@@ -19,6 +19,25 @@ def get_data(filename):
     return (xdata, ydata, ypower_data)
 
 
+def get_wheellog_data(filename):
+    import csv
+    from datetime import datetime as dt
+    #if not filename:
+    #    filename = r'e:\NEW\2020-03-10\matplotlib\wheellog\2020_05_28_07_52_00.csv'
+    data = []
+    with open(filename,'r') as f:
+        rdr = csv.DictReader(f)
+        lspeed_avg = 0
+        for i, x in enumerate(rdr):
+            lspeed_avg = float(x['speed'])
+            lpower = float(x['power'])
+            data.append({'datetime':dt.strptime(x['date']+' '+x['time'],'%Y-%m-%d %H:%M:%S.%f'), 'speed':lspeed_avg, 'power':lpower})
+    xdata = [x['datetime'] for x in data] #[:100]
+    ydata = [x['speed'] for x in data] #[:100]
+    ypower_data = [x['power']/100 for x in data] 
+    return (xdata, ydata, ypower_data)
+
+
 class MainTk(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
@@ -29,25 +48,36 @@ class MainTk(tk.Tk):
         
         self.button = ttk.Button(self, text = "Browse A File",command = self.fileDialog)
         self.button.pack()
+       
+        # --- Фрейм на котором будет график (нужен, чтобы график потом уничтожить вместе с фреймом для загрузки нового)
+        self.graphframe = tk.Frame()
+        self.graphframe.pack(expand=1, fill='both')
         
-        self.graph_draw('')
+        # --- Фрейм на котором будет тулбар
+        self.toolbarframe = tk.Frame()
+        self.toolbarframe.pack(expand=1, fill='both')
         
-        # --- Выход из программы ---
-        self.bind('<Button-2>', lambda event: exit()) # Выход по средней кнопки мыши
-        self.bind('<Escape>', lambda event: exit())   # Выход по Esc
+        filename = ''
+        self.graph_draw(filename)
+        
+        # --- Выход из программы (вынесено в ZoomPan) ---
+        #self.bind('<Button-2>', lambda event: self.destroy()) # Выход по средней кнопки мыши
+        #self.bind('<Escape>', lambda event: self.destroy())   # Выход по Esc
         # --------------------------
-        
+    
     def format_coord(self, x, y):
         timeformat = matplotlib.dates.num2date(x).strftime('%H:%M:%S')
         return 'Время: {} Скорость: {} км/ч Мощность: {} Вт'.format(timeformat, round(y,1), round(y*100,0))
-
+    
     def graph_draw(self, filename):
-        # --- График ---
-        fig, ax = matplotlib.pyplot.subplots() # Создание фигуры fig и осей ax (axes)
+        # Создаем фигуру fig и оси ax
+        fig, ax = matplotlib.pyplot.subplots()
         
-        xdata, ydata, ypower_data = get_data('') # Данные для построения графика
-        ax.plot(xdata, ydata, color="green", label="Скорость")
-        ax.plot(xdata, ypower_data, color="red", label="Мощность Y*100")
+        if filename:
+            xdata, ydata, ypower_data = get_wheellog_data(filename) # Данные для построения графика
+            #xdata, ydata, ypower_data = get_data(filename) # Данные для построения графика
+            ax.plot(xdata, ydata, color="green", label="Скорость")
+            ax.plot(xdata, ypower_data, color="red", label="Мощность Y*100")
         fig.autofmt_xdate() # Наклонные надписи на оси X
         ax.set_xlabel('Время') # Подписать ось X
         ax.set_ylabel('Y') # Подписать ось Y
@@ -55,23 +85,33 @@ class MainTk(tk.Tk):
         ax.grid() # Показать сетку
         ax.format_coord = self.format_coord # Показ координат не как x, y, а как Время, Скорость, Мощность
 
-        self.canvas = matplotlib.backends.backend_tkagg.FigureCanvasTkAgg(fig, self)
+        # --- Отрисовка ---
+        self.graphframe.destroy()
+        self.graphframe = tk.Frame()
+        self.graphframe.pack(expand=1, fill='both')
+
+        self.canvas = matplotlib.backends.backend_tkagg.FigureCanvasTkAgg(fig, self.graphframe) # Было (fig, self)
         #self.canvas.draw() 
         self.canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)    
-        
+    
         # --- Масштабирование графика ---
         zp = ZoomPan()
         zp.apply(ax, base_scale=1.3)
 
         # --- Тулбар ---
-        self.toolbar = matplotlib.backends.backend_tkagg.NavigationToolbar2Tk(self.canvas, self)
+        self.toolbarframe.destroy()
+        self.toolbarframe = tk.Frame()
+        self.toolbarframe.pack(expand=1, fill='both')
+        
+        self.toolbar = matplotlib.backends.backend_tkagg.NavigationToolbar2Tk(self.canvas, self.toolbarframe)
         self.toolbar.update()
-
-
+    
+        self.label.configure(text = filename)
+    
     def fileDialog(self):
         self.filename = filedialog.askopenfilename(initialdir =  curdir, title = "Select A File", filetypes = (("csv files","*.csv"),("All files","*.*")) )
-        self.label.configure(text = self.filename)
-
+        self.graph_draw(self.filename)
+        
 
 if __name__ == '__main__':
     app = MainTk()
