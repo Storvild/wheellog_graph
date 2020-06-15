@@ -28,7 +28,7 @@ class MainTk(tk.Tk):
         self.button = ttk.Button(self, text = "Browse A File",command = self.fileDialog)
         self.button.pack()
         
-        # График
+        # --- График ---
         fig, ax = matplotlib.pyplot.subplots() # Создание фигуры fig и осей ax (axes)
         
         xdata, ydata, ypower_data = get_data('') # Данные для построения графика
@@ -43,9 +43,16 @@ class MainTk(tk.Tk):
         self.canvas = matplotlib.backends.backend_tkagg.FigureCanvasTkAgg(fig, self)
         #self.canvas.draw() 
         self.canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)    
-
+        
+        # --- Тулбар ---
         self.toolbar = matplotlib.backends.backend_tkagg.NavigationToolbar2Tk(self.canvas, self)
         self.toolbar.update()
+        
+        # --- Выход из программы ---
+        self.bind('<Button-2>', lambda event: exit()) # Выход по средней кнопки мыши
+        self.bind('<Escape>', lambda event: exit())   # Выход по Esc
+        # --------------------------
+        
 
     def fileDialog(self):
         self.filename = filedialog.askopenfilename(initialdir =  curdir, title = "Select A File", filetypes = (("csv files","*.csv"),("All files","*.*")) )
