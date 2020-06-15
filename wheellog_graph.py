@@ -41,6 +41,7 @@ class MainTk(tk.Tk):
         ax.set_ylabel('Y') # Подписать ось Y
         ax.legend() # Показать легенду
         ax.grid() # Показать сетку
+        ax.format_coord = self.format_coord # Показ координат не как x, y, а как Время, Скорость, Мощность
 
         self.canvas = matplotlib.backends.backend_tkagg.FigureCanvasTkAgg(fig, self)
         #self.canvas.draw() 
@@ -59,6 +60,9 @@ class MainTk(tk.Tk):
         self.bind('<Escape>', lambda event: exit())   # Выход по Esc
         # --------------------------
         
+    def format_coord(self, x, y):
+        timeformat = matplotlib.dates.num2date(x).strftime('%H:%M:%S')
+        return 'Время: {} Скорость: {} км/ч Мощность: {} Вт'.format(timeformat, round(y,1), round(y*100,0))
 
     def fileDialog(self):
         self.filename = filedialog.askopenfilename(initialdir =  curdir, title = "Select A File", filetypes = (("csv files","*.csv"),("All files","*.*")) )
