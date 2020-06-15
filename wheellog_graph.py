@@ -30,6 +30,18 @@ class MainTk(tk.Tk):
         self.button = ttk.Button(self, text = "Browse A File",command = self.fileDialog)
         self.button.pack()
         
+        self.graph_draw('')
+        
+        # --- Выход из программы ---
+        self.bind('<Button-2>', lambda event: exit()) # Выход по средней кнопки мыши
+        self.bind('<Escape>', lambda event: exit())   # Выход по Esc
+        # --------------------------
+        
+    def format_coord(self, x, y):
+        timeformat = matplotlib.dates.num2date(x).strftime('%H:%M:%S')
+        return 'Время: {} Скорость: {} км/ч Мощность: {} Вт'.format(timeformat, round(y,1), round(y*100,0))
+
+    def graph_draw(self, filename):
         # --- График ---
         fig, ax = matplotlib.pyplot.subplots() # Создание фигуры fig и осей ax (axes)
         
@@ -50,19 +62,11 @@ class MainTk(tk.Tk):
         # --- Масштабирование графика ---
         zp = ZoomPan()
         zp.apply(ax, base_scale=1.3)
-        
+
         # --- Тулбар ---
         self.toolbar = matplotlib.backends.backend_tkagg.NavigationToolbar2Tk(self.canvas, self)
         self.toolbar.update()
-        
-        # --- Выход из программы ---
-        self.bind('<Button-2>', lambda event: exit()) # Выход по средней кнопки мыши
-        self.bind('<Escape>', lambda event: exit())   # Выход по Esc
-        # --------------------------
-        
-    def format_coord(self, x, y):
-        timeformat = matplotlib.dates.num2date(x).strftime('%H:%M:%S')
-        return 'Время: {} Скорость: {} км/ч Мощность: {} Вт'.format(timeformat, round(y,1), round(y*100,0))
+
 
     def fileDialog(self):
         self.filename = filedialog.askopenfilename(initialdir =  curdir, title = "Select A File", filetypes = (("csv files","*.csv"),("All files","*.*")) )
