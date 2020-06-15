@@ -44,6 +44,8 @@ class MainTk(tk.Tk):
         #self.canvas.draw() 
         self.canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)    
 
+        self.toolbar = matplotlib.backends.backend_tkagg.NavigationToolbar2Tk(self.canvas, self)
+        self.toolbar.update()
 
     def fileDialog(self):
         self.filename = filedialog.askopenfilename(initialdir =  curdir, title = "Select A File", filetypes = (("csv files","*.csv"),("All files","*.*")) )
