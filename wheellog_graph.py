@@ -48,7 +48,10 @@ class MainTk(tk.Tk):
         
         self.button = ttk.Button(self, text = "Browse A File",command = self.fileDialog)
         self.button.pack()
-       
+
+        self.label_info = tk.Label(self, text='', anchor='w', bg='yellow', font=("TkFixedFont", 10))
+        self.label_info.pack(padx=10, pady=10, fill='both')
+        
         # --- Фрейм на котором будет график (нужен, чтобы график потом уничтожить вместе с фреймом для загрузки нового)
         self.graphframe = tk.Frame()
         self.graphframe.pack(expand=1, fill='both')
@@ -62,41 +65,58 @@ class MainTk(tk.Tk):
         
         # --- Выход из программы (вынесено в ZoomPan) ---
         #self.bind('<Button-2>', lambda event: self.destroy()) # Выход по средней кнопки мыши
-        #self.bind('<Escape>', lambda event: self.destroy())   # Выход по Esc
+        self.bind('<Escape>', lambda event: self.destroy())   # Выход по Esc
         # --------------------------
     
     def format_coord(self, x, y):
         timeformat = matplotlib.dates.num2date(x).strftime('%H:%M:%S')
+        
+        #self.label_info.config(text='x={} y={}'.format(x, y))
+        if hasattr(self, 'xdata'):
+            for idx, a in enumerate(self.xdata):
+                if matplotlib.dates.date2num(a)>x:
+                    self.label_info.config(text='Скорость={:>6}км/ч Мощность={:>5}Вт x={:>19} y={:>19}'.format(round(self.ydata[idx],1), round(self.ypower_data[idx]*100), x, y))
+                    if self.scatter1:
+                        self.scatter1.remove()
+                    if self.scatter2:
+                        self.scatter2.remove()
+                    self.scatter1 = self.ax.scatter([x], [self.ydata[idx]])
+                    self.scatter2 = self.ax.scatter([x], [self.ypower_data[idx]])
+                    self.canvas.draw()
+                    break
+            
+        #self.ax.text(x, y, 'TEST')
+        #self.ax.scatter([x], [y])
         return 'Время: {} Скорость: {} км/ч Мощность: {} Вт'.format(timeformat, round(y,1), round(y*100,0))
     
     def graph_draw(self, filename):
         # Создаем фигуру fig и оси ax
-        fig, ax = matplotlib.pyplot.subplots()
+        self.fig, self.ax = matplotlib.pyplot.subplots()
         
         if filename:
-            xdata, ydata, ypower_data = get_wheellog_data(filename) # Данные для построения графика
+            self.xdata, self.ydata, self.ypower_data = get_wheellog_data(filename) # Данные для построения графика
             #xdata, ydata, ypower_data = get_data(filename) # Данные для построения графика
-            ax.plot(xdata, ydata, color="green", label="Скорость")
-            ax.plot(xdata, ypower_data, color="red", label="Мощность Y*100")
-        fig.autofmt_xdate() # Наклонные надписи на оси X
-        ax.set_xlabel('Время') # Подписать ось X
-        ax.set_ylabel('Y') # Подписать ось Y
-        ax.legend() # Показать легенду
-        ax.grid() # Показать сетку
-        ax.format_coord = self.format_coord # Показ координат не как x, y, а как Время, Скорость, Мощность
+            self.ax.plot(self.xdata, self.ydata, color="green", label="Скорость")
+            self.ax.plot(self.xdata, self.ypower_data, color="red", label="Мощность Y*100", linestyle='-')
+        self.fig.autofmt_xdate() # Наклонные надписи на оси X
+        self.ax.set_xlabel('Время') # Подписать ось X
+        self.ax.set_ylabel('Y') # Подписать ось Y
+        #self.ax.legend() # Показать легенду
+        self.ax.grid() # Показать сетку
+        self.ax.format_coord = self.format_coord # Показ координат не как x, y, а как Время, Скорость, Мощность
 
         # --- Отрисовка ---
         self.graphframe.destroy()
         self.graphframe = tk.Frame()
         self.graphframe.pack(expand=1, fill='both')
 
-        self.canvas = matplotlib.backends.backend_tkagg.FigureCanvasTkAgg(fig, self.graphframe) # Было (fig, self)
+        self.canvas = matplotlib.backends.backend_tkagg.FigureCanvasTkAgg(self.fig, self.graphframe) # Было (fig, self)
         #self.canvas.draw() 
         self.canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)    
     
         # --- Масштабирование графика ---
         zp = ZoomPan()
-        zp.apply(ax, base_scale=1.3)
+        zp.apply(self.ax, base_scale=1.3)
 
         # --- Тулбар ---
         self.toolbarframe.destroy()
@@ -107,6 +127,11 @@ class MainTk(tk.Tk):
         self.toolbar.update()
     
         self.label.configure(text = filename)
+        
+        #self.ax.text(737573.3281182902, 20, 'TEST')
+        #self.scatter = self.ax.scatter([737573.3281182902], [20])
+        self.scatter1 = None
+        self.scatter2 = None
     
     def fileDialog(self):
         self.filename = filedialog.askopenfilename(initialdir =  curdir, title = "Select A File", filetypes = (("csv files","*.csv"),("All files","*.*")) )
