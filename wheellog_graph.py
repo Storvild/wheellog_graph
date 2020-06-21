@@ -5,6 +5,7 @@ import os
 import matplotlib
 import matplotlib.pyplot
 from tk_zoom import ZoomPan
+from settings import Settings
 
 curdir = os.path.abspath(os.path.dirname(__file__))  # Текущий каталог, где лежит программа
 
@@ -63,7 +64,11 @@ class MainTk(tk.Tk):
         self.toolbarframe = tk.Frame()
         self.toolbarframe.pack(expand=1, fill='both')
 
-        filename = ''
+        self.settings = Settings()
+        if self.settings.window_width and self.settings.window_height:
+            self.geometry('{}x{}'.format(self.settings.window_width, self.settings.window_height))
+        
+        filename = self.settings.default_csv
         self.graph_draw(filename)
 
         # --- Выход из программы (вынесено в ZoomPan) ---
@@ -120,8 +125,20 @@ class MainTk(tk.Tk):
                         self.scatter1.remove()
                     if self.scatter2:
                         self.scatter2.remove()
-                    self.scatter1 = self.ax.scatter([self.xdata[idx]], [self.ydata[idx]])
-                    self.scatter2 = self.ax.scatter([self.xdata[idx]], [self.ypower_data[idx]])
+                    #if self.cursor_text:
+                    if hasattr(self, 'cursor_text'):
+                        self.cursor_text.remove()
+                    #self.cursor_text = self.ax.text(event.xdata, event.ydata, '{}км/ч\n{}Вт'.format(round(self.ydata[idx], 1), round(self.ypower_data[idx] * 100)))
+                    cursor_text_text = '{}км/ч\n{}Вт'.format(round(self.ydata[idx], 1), round(self.ypower_data[idx] * 100))
+                    
+                    if self.settings.text_near_cursor:
+                        #self.cursor_text = self.ax.text(event.xdata, event.ydata, cursor_text_text, fontsize=12)
+                        #self.cursor_text = self.ax.text(event.xdata, event.ydata, cursor_text_text, bbox=dict(facecolor='red', alpha=0.5))
+                        self.cursor_text = self.ax.text(event.xdata, event.ydata+1, cursor_text_text, bbox=dict(facecolor='white', alpha=0.8))
+                        #self.cursor_text = self.ax.text(event.x, event.y, cursor_text_text, horizontalalignment='center', verticalalignment='center', transform=self.ax.transAxes)
+
+                    self.scatter1 = self.ax.scatter([self.xdata[idx]], [self.ydata[idx]], color='green')
+                    self.scatter2 = self.ax.scatter([self.xdata[idx]], [self.ypower_data[idx]], color='red')
                     self.canvas.draw()
                     break
 
@@ -133,8 +150,8 @@ class MainTk(tk.Tk):
         if filename:
             self.xdata, self.ydata, self.ypower_data = get_wheellog_data(filename)  # Данные для построения графика
             # xdata, ydata, ypower_data = get_data(filename) # Данные для построения графика
-            self.ax.plot(self.xdata, self.ydata, color="green", label="Скорость")
-            self.ax.plot(self.xdata, self.ypower_data, color="red", label="Мощность Y*100", linestyle='-')
+            self.ax.plot(self.xdata, self.ydata, color=self.settings.speed_color, label="Скорость")
+            self.ax.plot(self.xdata, self.ypower_data, color=self.settings.power_color, label="Мощность Y*100", linestyle='-')
         self.fig.autofmt_xdate()  # Наклонные надписи на оси X
         self.ax.set_xlabel('Время')  # Подписать ось X
         self.ax.set_ylabel('Y')  # Подписать ось Y
@@ -177,7 +194,7 @@ class MainTk(tk.Tk):
                                                    filetypes=(("csv files", "*.csv"), ("All files", "*.*")))
         self.graph_draw(self.filename)
 
-
+    
 if __name__ == '__main__':
     app = MainTk()
     app.mainloop()
