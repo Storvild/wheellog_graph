@@ -137,8 +137,8 @@ class MainTk(tk.Tk):
                         self.cursor_text = self.ax.text(event.xdata, event.ydata+1, cursor_text_text, bbox=dict(facecolor='white', alpha=0.8))
                         #self.cursor_text = self.ax.text(event.x, event.y, cursor_text_text, horizontalalignment='center', verticalalignment='center', transform=self.ax.transAxes)
 
-                    self.scatter1 = self.ax.scatter([self.xdata[idx]], [self.ydata[idx]], color='green')
-                    self.scatter2 = self.ax.scatter([self.xdata[idx]], [self.ypower_data[idx]], color='red')
+                    self.scatter1 = self.ax.scatter([self.xdata[idx]], [self.ydata[idx]], color='green', s=50, alpha=1)
+                    self.scatter2 = self.ax.scatter([self.xdata[idx]], [self.ypower_data[idx]], color='red', alpha=0.8)
                     self.canvas.draw()
                     break
 
