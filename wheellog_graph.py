@@ -41,6 +41,38 @@ def get_wheellog_data(filename):
     ypower_data = [x['power'] / 100 for x in data]
     return (xdata, ydata, ypower_data)
 
+def dichotomy_find_idx(arr, val):
+    if arr is None or len(arr) == 0:
+        return None
+    idx_min = 0
+    idx_max = len(arr) - 1
+    step = 0
+    while True:
+        if idx_max == idx_min:
+            print(step)
+            return idx_max
+        else:
+            idx = (idx_max - idx_min) // 2 + idx_min
+            if arr[idx] == val:
+                print(step)
+                return idx
+            elif arr[idx] > val:
+                idx_max = idx
+            else:
+                idx_min = idx + 1
+        step += 1
+
+def sequence_find_idx(arr, val):
+    if arr is None or len(arr) == 0:
+        return None
+    step = 0
+    for idx, a in enumerate(arr):
+        if a >= val:
+            print(step)
+            return idx
+        step += 1
+
+
 
 class MainTk(tk.Tk):
     def __init__(self, *args, **kwargs):
@@ -113,34 +145,34 @@ class MainTk(tk.Tk):
         #if event.xdata:
             #print(event.xdata, event.ydata)
             timeformat = matplotlib.dates.num2date(event.xdata).strftime('%H:%M:%S')
+            
+            #idx = sequence_find_idx(self.xdata, matplotlib.dates.num2date(event.xdata).replace(tzinfo=None))
+            idx = dichotomy_find_idx(self.xdata, matplotlib.dates.num2date(event.xdata).replace(tzinfo=None))
 
-            for idx, a in enumerate(self.xdata):
-                if matplotlib.dates.date2num(a) > event.xdata:
-                    self.label_info.config(
-                        text='Время:{} Скорость={:>6}км/ч Мощность={:>5}Вт\nx={:>4} y={:>4}\nxdata={:>20} ydata={:>20}'.format(
-                                timeformat, round(self.ydata[idx], 1), round(self.ypower_data[idx] * 100),
-                                event.x, event.y,
-                                event.xdata, event.ydata))
-                    if self.scatter1:
-                        self.scatter1.remove()
-                    if self.scatter2:
-                        self.scatter2.remove()
-                    #if self.cursor_text:
-                    if hasattr(self, 'cursor_text'):
-                        self.cursor_text.remove()
-                    #self.cursor_text = self.ax.text(event.xdata, event.ydata, '{}км/ч\n{}Вт'.format(round(self.ydata[idx], 1), round(self.ypower_data[idx] * 100)))
-                    cursor_text_text = '{}км/ч\n{}Вт'.format(round(self.ydata[idx], 1), round(self.ypower_data[idx] * 100))
-                    
-                    if self.settings.text_near_cursor:
-                        #self.cursor_text = self.ax.text(event.xdata, event.ydata, cursor_text_text, fontsize=12)
-                        #self.cursor_text = self.ax.text(event.xdata, event.ydata, cursor_text_text, bbox=dict(facecolor='red', alpha=0.5))
-                        self.cursor_text = self.ax.text(event.xdata, event.ydata+1, cursor_text_text, bbox=dict(facecolor='white', alpha=0.8))
-                        #self.cursor_text = self.ax.text(event.x, event.y, cursor_text_text, horizontalalignment='center', verticalalignment='center', transform=self.ax.transAxes)
+            self.label_info.config(
+                text='Время:{} Скорость={:>6}км/ч Мощность={:>5}Вт\nx={:>4} y={:>4}\nxdata={:>20} ydata={:>20}'.format(
+                        timeformat, round(self.ydata[idx], 1), round(self.ypower_data[idx] * 100),
+                        event.x, event.y,
+                        event.xdata, event.ydata))
+            if self.scatter1:
+                self.scatter1.remove()
+            if self.scatter2:
+                self.scatter2.remove()
+            #if self.cursor_text:
+            if hasattr(self, 'cursor_text'):
+                self.cursor_text.remove()
+            #self.cursor_text = self.ax.text(event.xdata, event.ydata, '{}км/ч\n{}Вт'.format(round(self.ydata[idx], 1), round(self.ypower_data[idx] * 100)))
+            cursor_text_text = '{}км/ч\n{}Вт'.format(round(self.ydata[idx], 1), round(self.ypower_data[idx] * 100))
 
-                    self.scatter1 = self.ax.scatter([self.xdata[idx]], [self.ydata[idx]], color='green', s=50, alpha=1)
-                    self.scatter2 = self.ax.scatter([self.xdata[idx]], [self.ypower_data[idx]], color='red', alpha=0.8)
-                    self.canvas.draw()
-                    break
+            if self.settings.text_near_cursor:
+                #self.cursor_text = self.ax.text(event.xdata, event.ydata, cursor_text_text, fontsize=12)
+                #self.cursor_text = self.ax.text(event.xdata, event.ydata, cursor_text_text, bbox=dict(facecolor='red', alpha=0.5))
+                self.cursor_text = self.ax.text(event.xdata, event.ydata+1, cursor_text_text, bbox=dict(facecolor='white', alpha=0.8))
+                #self.cursor_text = self.ax.text(event.x, event.y, cursor_text_text, horizontalalignment='center', verticalalignment='center', transform=self.ax.transAxes)
+
+            self.scatter1 = self.ax.scatter([self.xdata[idx]], [self.ydata[idx]], color='green', s=50, alpha=1)
+            self.scatter2 = self.ax.scatter([self.xdata[idx]], [self.ypower_data[idx]], color='red', alpha=0.8)
+            self.canvas.draw()
 
 
     def graph_draw(self, filename):
