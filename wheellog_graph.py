@@ -39,6 +39,18 @@ def get_wheellog_data(filename):
     xdata = [x['datetime'] for x in data]  # [:100]
     ydata = [x['speed'] for x in data]  # [:100]
     ypower_data = [x['power'] / 100 for x in data]
+    
+    
+    # with open(r'e:\virtualenvs\python_examples\algorithm\method_dichotomy_data.py', 'w') as fw:
+        # import json, datetime
+        # #dthandler = lambda obj: obj.isoformat() if isinstance(obj, datetime.datetime) else None
+        # #data = json.dumps(xdata, ensure_ascii=False, default=dthandler)
+        # fw.write('wheellog_data = [')
+        # fw.write(','.join([x.__repr__() for x in xdata]))
+        # fw.write(']')
+            
+        
+        
     return (xdata, ydata, ypower_data)
 
 def dichotomy_find_idx(arr, val):
