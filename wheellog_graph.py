@@ -39,15 +39,14 @@ def get_wheellog_data(filename):
     xdata = [x['datetime'] for x in data]  # [:100]
     ydata = [x['speed'] for x in data]  # [:100]
     ypower_data = [x['power'] / 100 for x in data]
-    
-    
+
     # with open(r'e:\virtualenvs\python_examples\algorithm\method_dichotomy_data.py', 'w') as fw:
-        # import json, datetime
-        # #dthandler = lambda obj: obj.isoformat() if isinstance(obj, datetime.datetime) else None
-        # #data = json.dumps(xdata, ensure_ascii=False, default=dthandler)
-        # fw.write('wheellog_data = [')
-        # fw.write(','.join([x.__repr__() for x in xdata]))
-        # fw.write(']')
+    # import json, datetime
+    # #dthandler = lambda obj: obj.isoformat() if isinstance(obj, datetime.datetime) else None
+    # #data = json.dumps(xdata, ensure_ascii=False, default=dthandler)
+    # fw.write('wheellog_data = [')
+    # fw.write(','.join([x.__repr__() for x in xdata]))
+    # fw.write(']')
     return (xdata, ydata, ypower_data)
 
 
@@ -68,6 +67,7 @@ def dichotomy_find_idx(arr, val):
             else:
                 idx_min = idx + 1
 
+
 def sequence_find_idx(arr, val):
     if arr is None or len(arr) == 0:
         return None
@@ -77,7 +77,6 @@ def sequence_find_idx(arr, val):
             print(step)
             return idx
         step += 1
-
 
 
 class MainTk(tk.Tk):
@@ -105,7 +104,7 @@ class MainTk(tk.Tk):
         self.settings = Settings()
         if self.settings['window_width'] and self.settings['window_height']:
             self.geometry('{}x{}'.format(self.settings['window_width'], self.settings['window_height']))
-        
+
         filename = self.settings['default_csv']
         self.graph_draw(filename)
 
@@ -132,7 +131,7 @@ class MainTk(tk.Tk):
                 if matplotlib.dates.date2num(a) > x:
                     self.label_info.config(
                         text='Время:{} Скорость={:>6}км/ч Мощность={:>5}Вт x={:>19} y={:>19}'.format(
-                                timeformat, round(self.ydata[idx], 1), round(self.ypower_data[idx] * 100), x, y))
+                            timeformat, round(self.ydata[idx], 1), round(self.ypower_data[idx] * 100), x, y))
                     if self.scatter1:
                         self.scatter1.remove()
                     if self.scatter2:
@@ -148,38 +147,40 @@ class MainTk(tk.Tk):
 
     def on_mouse_move(self, event):
         if hasattr(self, 'xdata') and event.xdata and event.ydata:
-        #if event.xdata:
-            #print(event.xdata, event.ydata)
+            # if event.xdata:
+            # print(event.xdata, event.ydata)
             timeformat = matplotlib.dates.num2date(event.xdata).strftime('%H:%M:%S')
-            
-            #idx = sequence_find_idx(self.xdata, matplotlib.dates.num2date(event.xdata).replace(tzinfo=None))
+
+            # idx = sequence_find_idx(self.xdata, matplotlib.dates.num2date(event.xdata).replace(tzinfo=None))
             idx = dichotomy_find_idx(self.xdata, matplotlib.dates.num2date(event.xdata).replace(tzinfo=None))
 
             self.label_info.config(
                 text='Время:{} Скорость={:>6}км/ч Мощность={:>5}Вт\nx={:>4} y={:>4}\nxdata={:>20} ydata={:>20}'.format(
-                        timeformat, round(self.ydata[idx], 1), round(self.ypower_data[idx] * 100),
-                        event.x, event.y,
-                        event.xdata, event.ydata))
+                    timeformat, round(self.ydata[idx], 1), round(self.ypower_data[idx] * 100),
+                    event.x, event.y,
+                    event.xdata, event.ydata))
             if self.scatter1:
                 self.scatter1.remove()
             if self.scatter2:
                 self.scatter2.remove()
-            #if self.cursor_text:
+            # if self.cursor_text:
             if hasattr(self, 'cursor_text'):
                 self.cursor_text.remove()
-            #self.cursor_text = self.ax.text(event.xdata, event.ydata, '{}км/ч\n{}Вт'.format(round(self.ydata[idx], 1), round(self.ypower_data[idx] * 100)))
+            # self.cursor_text = self.ax.text(event.xdata, event.ydata, '{}км/ч\n{}Вт'.format(round(self.ydata[idx], 1), round(self.ypower_data[idx] * 100)))
             cursor_text_text = '{}км/ч\n{}Вт'.format(round(self.ydata[idx], 1), round(self.ypower_data[idx] * 100))
 
             if self.settings['text_near_cursor']:
-                #self.cursor_text = self.ax.text(event.xdata, event.ydata, cursor_text_text, fontsize=12)
-                #self.cursor_text = self.ax.text(event.xdata, event.ydata, cursor_text_text, bbox=dict(facecolor='red', alpha=0.5))
-                self.cursor_text = self.ax.text(event.xdata, event.ydata+1, cursor_text_text, bbox=dict(facecolor='white', alpha=0.8))
-                #self.cursor_text = self.ax.text(event.x, event.y, cursor_text_text, horizontalalignment='center', verticalalignment='center', transform=self.ax.transAxes)
+                # self.cursor_text = self.ax.text(event.xdata, event.ydata, cursor_text_text, fontsize=12)
+                # self.cursor_text = self.ax.text(event.xdata, event.ydata, cursor_text_text, bbox=dict(facecolor='red', alpha=0.5))
+                self.cursor_text = self.ax.text(event.xdata, event.ydata + 1, cursor_text_text,
+                                                bbox=dict(facecolor='white', alpha=0.8))
+                # self.cursor_text = self.ax.text(event.x, event.y, cursor_text_text, horizontalalignment='center', verticalalignment='center', transform=self.ax.transAxes)
 
-            self.scatter1 = self.ax.scatter([self.xdata[idx]], [self.ydata[idx]], color=self.settings['speed_color'], s=50, alpha=1)
-            self.scatter2 = self.ax.scatter([self.xdata[idx]], [self.ypower_data[idx]], color=self.settings['power_color'], alpha=0.8)
+            self.scatter1 = self.ax.scatter([self.xdata[idx]], [self.ydata[idx]], color=self.settings['speed_color'],
+                                            s=50, alpha=1)
+            self.scatter2 = self.ax.scatter([self.xdata[idx]], [self.ypower_data[idx]],
+                                            color=self.settings['power_color'], alpha=0.8)
             self.canvas.draw()
-
 
     def graph_draw(self, filename):
         # Создаем фигуру fig и оси ax
@@ -189,7 +190,8 @@ class MainTk(tk.Tk):
             self.xdata, self.ydata, self.ypower_data = get_wheellog_data(filename)  # Данные для построения графика
             # xdata, ydata, ypower_data = get_data(filename) # Данные для построения графика
             self.ax.plot(self.xdata, self.ydata, color=self.settings['speed_color'], label="Скорость")
-            self.ax.plot(self.xdata, self.ypower_data, color=self.settings['power_color'], label="Мощность Y*100", linestyle='-')
+            self.ax.plot(self.xdata, self.ypower_data, color=self.settings['power_color'], label="Мощность Y*100",
+                         linestyle='-')
         self.fig.autofmt_xdate()  # Наклонные надписи на оси X
         self.ax.set_xlabel('Время')  # Подписать ось X
         self.ax.set_ylabel('Y')  # Подписать ось Y
@@ -226,14 +228,14 @@ class MainTk(tk.Tk):
         self.scatter2 = None
         self.canvas.mpl_connect('motion_notify_event', self.on_mouse_move)
 
-
     def fileDialog(self):
         self.filename = filedialog.askopenfilename(initialdir=curdir, title="Select A File",
-                                                  filetypes=(("csv files", "*.csv"), ("All files", "*.*")))
+                                                   filetypes=(("csv files", "*.csv"), ("All files", "*.*")))
         self.graph_draw(self.filename)
 
     def destroy(self):
-        exit() # Для полного выхода по закрытию программы
+        exit()  # Для полного выхода по закрытию программы
+
 
 if __name__ == '__main__':
     app = MainTk()
