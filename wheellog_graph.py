@@ -48,31 +48,25 @@ def get_wheellog_data(filename):
         # fw.write('wheellog_data = [')
         # fw.write(','.join([x.__repr__() for x in xdata]))
         # fw.write(']')
-            
-        
-        
     return (xdata, ydata, ypower_data)
+
 
 def dichotomy_find_idx(arr, val):
     if arr is None or len(arr) == 0:
         return None
     idx_min = 0
     idx_max = len(arr) - 1
-    step = 0
     while True:
         if idx_max == idx_min:
-            print(step)
             return idx_max
         else:
             idx = (idx_max - idx_min) // 2 + idx_min
             if arr[idx] == val:
-                print(step)
                 return idx
             elif arr[idx] > val:
                 idx_max = idx
             else:
                 idx_min = idx + 1
-        step += 1
 
 def sequence_find_idx(arr, val):
     if arr is None or len(arr) == 0:
@@ -109,10 +103,10 @@ class MainTk(tk.Tk):
         self.toolbarframe.pack(expand=1, fill='both')
 
         self.settings = Settings()
-        if self.settings.window_width and self.settings.window_height:
-            self.geometry('{}x{}'.format(self.settings.window_width, self.settings.window_height))
+        if self.settings['window_width'] and self.settings['window_height']:
+            self.geometry('{}x{}'.format(self.settings['window_width'], self.settings['window_height']))
         
-        filename = self.settings.default_csv
+        filename = self.settings['default_csv']
         self.graph_draw(filename)
 
         # --- Выход из программы (вынесено в ZoomPan) ---
@@ -176,14 +170,14 @@ class MainTk(tk.Tk):
             #self.cursor_text = self.ax.text(event.xdata, event.ydata, '{}км/ч\n{}Вт'.format(round(self.ydata[idx], 1), round(self.ypower_data[idx] * 100)))
             cursor_text_text = '{}км/ч\n{}Вт'.format(round(self.ydata[idx], 1), round(self.ypower_data[idx] * 100))
 
-            if self.settings.text_near_cursor:
+            if self.settings['text_near_cursor']:
                 #self.cursor_text = self.ax.text(event.xdata, event.ydata, cursor_text_text, fontsize=12)
                 #self.cursor_text = self.ax.text(event.xdata, event.ydata, cursor_text_text, bbox=dict(facecolor='red', alpha=0.5))
                 self.cursor_text = self.ax.text(event.xdata, event.ydata+1, cursor_text_text, bbox=dict(facecolor='white', alpha=0.8))
                 #self.cursor_text = self.ax.text(event.x, event.y, cursor_text_text, horizontalalignment='center', verticalalignment='center', transform=self.ax.transAxes)
 
-            self.scatter1 = self.ax.scatter([self.xdata[idx]], [self.ydata[idx]], color='green', s=50, alpha=1)
-            self.scatter2 = self.ax.scatter([self.xdata[idx]], [self.ypower_data[idx]], color='red', alpha=0.8)
+            self.scatter1 = self.ax.scatter([self.xdata[idx]], [self.ydata[idx]], color=self.settings['speed_color'], s=50, alpha=1)
+            self.scatter2 = self.ax.scatter([self.xdata[idx]], [self.ypower_data[idx]], color=self.settings['power_color'], alpha=0.8)
             self.canvas.draw()
 
 
@@ -191,11 +185,11 @@ class MainTk(tk.Tk):
         # Создаем фигуру fig и оси ax
         self.fig, self.ax = matplotlib.pyplot.subplots()
 
-        if filename:
+        if filename and os.path.exists(filename):
             self.xdata, self.ydata, self.ypower_data = get_wheellog_data(filename)  # Данные для построения графика
             # xdata, ydata, ypower_data = get_data(filename) # Данные для построения графика
-            self.ax.plot(self.xdata, self.ydata, color=self.settings.speed_color, label="Скорость")
-            self.ax.plot(self.xdata, self.ypower_data, color=self.settings.power_color, label="Мощность Y*100", linestyle='-')
+            self.ax.plot(self.xdata, self.ydata, color=self.settings['speed_color'], label="Скорость")
+            self.ax.plot(self.xdata, self.ypower_data, color=self.settings['power_color'], label="Мощность Y*100", linestyle='-')
         self.fig.autofmt_xdate()  # Наклонные надписи на оси X
         self.ax.set_xlabel('Время')  # Подписать ось X
         self.ax.set_ylabel('Y')  # Подписать ось Y
@@ -235,10 +229,12 @@ class MainTk(tk.Tk):
 
     def fileDialog(self):
         self.filename = filedialog.askopenfilename(initialdir=curdir, title="Select A File",
-                                                   filetypes=(("csv files", "*.csv"), ("All files", "*.*")))
+                                                  filetypes=(("csv files", "*.csv"), ("All files", "*.*")))
         self.graph_draw(self.filename)
 
-    
+    def destroy(self):
+        exit() # Для полного выхода по закрытию программы
+
 if __name__ == '__main__':
     app = MainTk()
     app.mainloop()
