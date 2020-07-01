@@ -83,23 +83,44 @@ class MainTk(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
 
-        # --- Элементы Tk ---
-        self.label = tk.Label(self, text='Выберите файл csv с данными Wheellog')
-        self.label.pack(padx=10, pady=10)
+        self.mainframe = tk.Frame(self)
+        self.mainframe.pack(fill='both')
 
-        self.button = ttk.Button(self, text="Browse A File", command=self.fileDialog)
-        self.button.pack()
+        # --- Фрейм с кнопкой выбра файла ---
+        fileframe = tk.Frame(self.mainframe)
+        fileframe.pack(fill='both', padx=5, pady=5)
 
-        self.label_info = tk.Label(self, text='', anchor='w', bg='yellow', font=("TkFixedFont", 10), justify='left')
-        self.label_info.pack(padx=10, pady=10, fill='both')
+        self.button = ttk.Button(fileframe, text="File...", command=self.fileDialog)
+        self.button.pack(side='left', padx=5, pady=5)
+
+        self.label = tk.Label(fileframe, text='Выберите файл csv с данными Wheellog')
+        self.label.pack(fill='both', padx=5, pady=5)
+
+
+        # --- Фрейм с информацией (временно)
+        self.label_info = tk.Label(self.mainframe, text='', anchor='w', bg='yellow', font=("TkFixedFont", 10), justify='left')
+        self.label_info.pack(padx=5, pady=5, fill='both')
+        
+        self.settings_frame = tk.Frame(self.mainframe)
+        self.settings_frame.pack(fill='x', padx=5, pady=5)
+        self.boxinfo_var = tk.BooleanVar()
+        self.checkbox_boxinfo = tk.Checkbutton(self.settings_frame, text='Инфо', variable=self.boxinfo_var)
+        self.checkbox_boxinfo.select()
+        self.checkbox_boxinfo.pack(side='left')
 
         # --- Фрейм на котором будет график (нужен, чтобы график потом уничтожить вместе с фреймом для загрузки нового)
-        self.graphframe = tk.Frame()
+        self.graphframe = tk.Frame(self.mainframe)
         self.graphframe.pack(expand=1, fill='both')
 
         # --- Фрейм на котором будет тулбар
-        self.toolbarframe = tk.Frame()
-        self.toolbarframe.pack(expand=1, fill='both')
+        #self.toolbarframe = tk.Frame(self.mainframe, bg='blue')
+        #self.toolbarframe.pack(expand=0, fill='x')
+
+        # self.footerframe = tk.Frame(self.mainframe, bg='blue')
+        # self.footerframe.pack(padx=10, pady=10, side='bottom')
+        # self.footerlabel = tk.Label(self.footerframe)
+        # self.footerlabel.pack(fill='x', expand=1)
+
 
         self.settings = Settings()
         if self.settings['window_width'] and self.settings['window_height']:
@@ -163,23 +184,25 @@ class MainTk(tk.Tk):
                 self.scatter1.remove()
             if self.scatter2:
                 self.scatter2.remove()
-            # if self.cursor_text:
-            if hasattr(self, 'cursor_text'):
-                self.cursor_text.remove()
-            # self.cursor_text = self.ax.text(event.xdata, event.ydata, '{}км/ч\n{}Вт'.format(round(self.ydata[idx], 1), round(self.ypower_data[idx] * 100)))
-            cursor_text_text = '{}км/ч\n{}Вт'.format(round(self.ydata[idx], 1), round(self.ypower_data[idx] * 100))
-
-            if self.settings['text_near_cursor']:
-                # self.cursor_text = self.ax.text(event.xdata, event.ydata, cursor_text_text, fontsize=12)
-                # self.cursor_text = self.ax.text(event.xdata, event.ydata, cursor_text_text, bbox=dict(facecolor='red', alpha=0.5))
-                self.cursor_text = self.ax.text(event.xdata, event.ydata + 1, cursor_text_text,
-                                                bbox=dict(facecolor='white', alpha=0.8))
-                # self.cursor_text = self.ax.text(event.x, event.y, cursor_text_text, horizontalalignment='center', verticalalignment='center', transform=self.ax.transAxes)
-
             self.scatter1 = self.ax.scatter([self.xdata[idx]], [self.ydata[idx]], color=self.settings['speed_color'],
                                             s=50, alpha=1)
             self.scatter2 = self.ax.scatter([self.xdata[idx]], [self.ypower_data[idx]],
                                             color=self.settings['power_color'], alpha=0.8)
+
+
+            # self.cursor_text = self.ax.text(event.xdata, event.ydata, '{}км/ч\n{}Вт'.format(round(self.ydata[idx], 1), round(self.ypower_data[idx] * 100)))
+            cursor_text_text = '{}км/ч\n{}Вт'.format(round(self.ydata[idx], 1), round(self.ypower_data[idx] * 100))
+
+            #if self.settings['text_near_cursor']:
+
+            if hasattr(self, 'cursor_text') and self.cursor_text:
+                self.cursor_text.remove()
+                self.cursor_text = None
+            if self.boxinfo_var.get():
+                self.cursor_text = self.ax.text(event.xdata, event.ydata + 1, cursor_text_text,
+                                                bbox=dict(facecolor='white', alpha=0.8))
+                # self.cursor_text = self.ax.text(event.x, event.y, cursor_text_text, horizontalalignment='center', verticalalignment='center', transform=self.ax.transAxes)
+
             self.canvas.draw()
 
     def graph_draw(self, filename):
@@ -213,9 +236,9 @@ class MainTk(tk.Tk):
         zp.apply(self.ax, base_scale=1.3)
 
         # --- Тулбар ---
-        self.toolbarframe.destroy()
-        self.toolbarframe = tk.Frame()
-        self.toolbarframe.pack(expand=1, fill='both')
+        #self.toolbarframe.destroy()
+        #self.toolbarframe = tk.Frame()
+        #self.toolbarframe.pack(expand=1, fill='x')
 
         # self.toolbar = matplotlib.backends.backend_tkagg.NavigationToolbar2Tk(self.canvas, self.toolbarframe)
         # self.toolbar.update()
@@ -231,7 +254,8 @@ class MainTk(tk.Tk):
     def fileDialog(self):
         self.filename = filedialog.askopenfilename(initialdir=curdir, title="Select A File",
                                                    filetypes=(("csv files", "*.csv"), ("All files", "*.*")))
-        self.graph_draw(self.filename)
+        if self.filename:
+            self.graph_draw(self.filename)
 
     def destroy(self):
         exit()  # Для полного выхода по закрытию программы
