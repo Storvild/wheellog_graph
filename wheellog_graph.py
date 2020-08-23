@@ -6,7 +6,8 @@ import matplotlib
 import matplotlib.pyplot
 from tk_zoom import ZoomPan
 from settings import Settings
-
+from tkinter import messagebox #messagebox.showinfo("Title", "a Tk MessageBox") | showerror | showwarning
+        
 curdir = os.path.abspath(os.path.dirname(__file__))  # Текущий каталог, где лежит программа
 
 
@@ -108,6 +109,9 @@ class MainTk(tk.Tk):
         self.checkbox_boxinfo.select()
         self.checkbox_boxinfo.pack(side='left')
 
+        self.clear_button = ttk.Button(self.settings_frame, text="Clear", command=self.clear_frame)
+        self.clear_button.pack(side='left')
+        
         # --- Фрейм на котором будет график (нужен, чтобы график потом уничтожить вместе с фреймом для загрузки нового)
         self.graphframe = tk.Frame(self.mainframe)
         self.graphframe.pack(expand=1, fill='both')
@@ -256,7 +260,12 @@ class MainTk(tk.Tk):
                                                    filetypes=(("csv files", "*.csv"), ("All files", "*.*")))
         if self.filename:
             self.graph_draw(self.filename)
-
+    
+    def clear_frame(self):
+        self.graph_draw('')
+        #messagebox.showinfo("Clear", "Cleared")
+        
+        
     def destroy(self):
         exit()  # Для полного выхода по закрытию программы
 
